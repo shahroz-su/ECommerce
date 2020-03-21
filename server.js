@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const passport = require("passport");
 
 const app = express();
-
+const port = process.env.PORT || 3000;
 //Connect To DB
 require('./config/db.js');
 //passport configuration file
@@ -31,6 +31,6 @@ app.set('view engine', 'ejs');
 //	Set Static Folder
 app.use(express.static(path.join(__dirname,'public')));
 
-app.listen(3000, () => {
-	console.log("listening On 3000");
+app.listen(port, () => {
+	console.log("Server Started");
 });
