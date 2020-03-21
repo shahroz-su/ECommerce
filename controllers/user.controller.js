@@ -22,27 +22,14 @@ const app = express();
 //Register Funcion
 exports.register = (req, res) => res.render("register");
 
-
-// Register
 exports.registeruser = async (req,res)=>{
 
 const { name, email, password } = req.body;
  let err = [];
-
-  // Route to register new users  
-  router.post('/register', function(req, res) {
-    var user = new User(); // Create new User object
-    user.username = req.body.username; // Save username from request to User object
-    user.password = req.body.password; // Save password from request to User object
-    user.email = req.body.email; // Save email from request to User object
-    user.name = req.body.name; // Save name from request to User object
-    user.temporarytoken = jwt.sign({ username: user.username, email: user.email }, secret, { expiresIn: '24h' }); // Create a token for activating account through e-mail
-    // Check if request is valid and not empty or null
-
  if (!name || !email || !password ) {
   err = "Please Fill All Fields";
 res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password' : password});
-    } else {
+    }
    if (name.length < 5) {
     err = "Name must be at least 5 characters" ;
     res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password' : password});
@@ -54,13 +41,28 @@ res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password'
   if (err.length > 0) {
     res.render("register", { 'err' : err, 'email' : email , 'name' : name , 'password' : password});
   } 
+  if (err) {
+        err = "Please Try Again";
+   res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password' : password});
+ }
   const emailExist = await User.findOne({email : req.body.email});
   if (emailExist){
    err = "Email Already Exist";
    res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password' : password});
  }else{
-  user.save(function(err) {
-  if (err) throw err;
+    const salt = await bcrypt.genSalt(10 );
+    const hashpasswd = await bcrypt.hash(req.body.password, salt);
+    temporarytoken = jwt.sign({ name: user.username, email: user.email }, secret, { expiresIn: '24h' }); // Create a token for activating account through e-mail
+      //  Create a New User
+  const user = new User({
+    name : req.body.name,
+    email : req.body.email,
+    //password : req.body.password
+    password : hashpasswd,
+    temporarytoken
+    
+  });
+  const saveUser = await user.save(function(err){
   var smtpTransport = nodemailer.createTransport({
         service : 'gmail',
         auth: {
@@ -72,19 +74,22 @@ res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password'
         to: user.email,
         from: 'Localhost Staff, usmanarshad864@gmail.com',
         subject: 'Account Confirmation Link',
-        text: 'Hello ' + user.name + ', thank you for registering at localhost.com. Please click on the following link to complete your activation: http://localhost:8080/activate/' + user.temporarytoken,
-        html: 'Hello<strong> ' + user.name + '</strong>,<br><br>Thank you for registering at localhost.com. Please click on the link below to complete your activation:<br><br><a href="http://' + req.headers.host + '/api/web/activate/' + user.temporarytoken + '">http://localhost:3000/api/web/activate/</a>'
+        text: 
+          'Please click on the following link, to Confirm your Account:\n\n' +
+          'http://' + req.headers.host + '/api/web/index/ ' + '\n\n' +
+          'If you did not request this, please ignore this email..\n'
       };
       smtpTransport.sendMail(mailOptions, function(err) {
-       if (err) console.log(err); // If error with sending e-mail, log to console/terminal
         console.log('mail sent');
-      console.log(temporarytoken);  
-    res.render('register',{ success_msg :'Account registered! Please check your e-mail for activation link.'});    
-    }
+        req.flash('success_msg', 'An e-mail has been sent to ' + user.email + ' with further instructions.');
+        done(err, 'done');
+      });
+    res.render('register',{ success_msg :'Account Confirmation link sent to your email, Please Click on the link to confirm your account'});    
     });
-  }
 };
-});
+};
+
+
 exports.loginuser = (req,res,next)=>{
   passport.authenticate('local', {
     successRedirect: "/api/web/index",
@@ -132,9 +137,9 @@ exports.forget = (req, res, next) => {
     },
     function(token, user, done) {
      var smtpTransport = nodemailer.createTransport({
-/*        host: 'mail.google.com',
+      host: 'mail.google.com',
         port: 465,
-        secure: true,*/
+        secure: true,
         service : 'gmail',
         auth: {
           user: 'usmanarshad864@gmail.com', 
@@ -319,143 +324,3 @@ exports.activate =  function(req, res) {
     });
   });
 };
-/*  
-        const newUser = new User({
-          name, email, password
-        });
-
-        newUser.save(function(err) {
-          done(err, token, user);
-        });
-      }; 
- bcrypt.genSalt(10, (err, salt) => {
-          bcrypt.hash(newUser.password, salt, (err, hash) => {
-            if (err) throw err;
-            newUser.password = hash;
-            newUser.save().then(user => {
-                passport.authenticate("local")(req, res, function(){
-                 req.flash("success", "Successfully Signed Up! Nice to meet you " + req.body.name);
-                 res.redirect("/api/web/index"); 
-                });
-              });
-          });
-        });*/ 
-
-/*        exports.newpasss =  function(req, res) {
-  async.waterfall([
-    function(done) {
-      User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } }, function(err, user) {
-        if (!user) {
-          req.flash('error', 'Password reset token is invalid or has expired.');
-          return res.render('newpass');
-        }
-        if(req.body.password === req.body.C_password) {
-          user.setPassword(req.body.password, function(err) {
-            user.resetPasswordToken = undefined;
-            user.resetPasswordExpires = undefined;
-
-            user.save(function(err) {
-              req.logIn(user, function(err) {
-                done(err, user);
-                console.log(user);
-              });
-            });
-          })
-        } else {
-            req.flash("error", "Passwords do not match.");
-            return res.render('newpass');
-        }
-      });
-    },
-    function(user, done) {
-      var smtpTransport = nodemailer.createTransport({
-        service: 'gmail', 
-        auth: {
-          user: 'usmanarshad864@gmail.com', 
-          pass: 'bismilla786786'
-        }
-      });
-      var mailOptions = {
-        to: user.email,
-        from: 'usmanarshad864@gmail.com',
-        subject: 'Your password has been changed',
-        text: 'Hello,\n\n' +
-          'This is a confirmation that the password for your account ' + user.email + ' has just been changed.\n'
-      };
-      smtpTransport.sendMail(mailOptions, function(err) {
-        req.flash('success_msg', 'Success! Your password has been changed.');
-        done(err);
-      });
-    }
-  ], function(err) {
-    res.redirect('/api/web/login');
-  });
-};*/
-
-
-// Register
-/*exports.registeruser = async (req,res)=>{
-
-const { name, email, password } = req.body;
- let err = [];
- if (!name || !email || !password ) {
-  err = "Please Fill All Fields";
-res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password' : password});
-    }
-   if (name.length < 5) {
-    err = "Name must be at least 5 characters" ;
-    res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password' : password});
-  }
-   if (password.length < 6) {
-    err = "Password must be at least 6 characters" ;
-    res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password' : password});
-  }
-  if (err.length > 0) {
-    res.render("register", { 'err' : err, 'email' : email , 'name' : name , 'password' : password});
-  } 
-  if (err) {
-        err = "Please Try Again";
-   res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password' : password});
- }
-  const emailExist = await User.findOne({email : req.body.email});
-  if (emailExist){
-   err = "Email Already Exist";
-   res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password' : password});
- }else{
-    const salt = await bcrypt.genSalt(10 );
-    const hashpasswd = await bcrypt.hash(req.body.password, salt);
-      //  Create a New User
-  const user = new User({
-    name : req.body.name,
-    email : req.body.email,
-    //password : req.body.password
-    password : hashpasswd
-/*    temporarytoken = jwt.sign({ name: user.username, email: user.email }, secret, { expiresIn: '24h' }); // Create a token for activating account through e-mail
-*//*
-  });
-  const saveUser = await user.save(function(err){
-  var smtpTransport = nodemailer.createTransport({
-        service : 'gmail',
-        auth: {
-          user: 'usmanarshad864@gmail.com', 
-          pass: 'bismilla786786'
-        }
-      });
-      var mailOptions = {
-        to: user.email,
-        from: 'Localhost Staff, usmanarshad864@gmail.com',
-        subject: 'Account Confirmation Link',
-        text: 
-          'Please click on the following link, to Confirm your Account:\n\n' +
-          'http://' + req.headers.host + '/api/web/index/ ' + '\n\n' +
-          'If you did not request this, please ignore this email..\n'
-      };
-      smtpTransport.sendMail(mailOptions, function(err) {
-        console.log('mail sent');
-        req.flash('success_msg', 'An e-mail has been sent to ' + user.email + ' with further instructions.');
-        done(err, 'done');
-      });
-    res.render('register',{ success_msg :'Account Confirmation link sent to your email, Please Click on the link to confirm your account'});    
-    });
-};
-};*/

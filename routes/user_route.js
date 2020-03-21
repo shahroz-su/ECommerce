@@ -46,7 +46,7 @@ router.get('/login' ,(req,res)=>{
   res.render("login");
 });
 
-router.get('/register', userController.register);
+router.get('/register',userController.register);
 
 // Register
 router.post('/register', userController.registeruser);

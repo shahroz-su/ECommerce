@@ -24,6 +24,9 @@ const upload = multer({
 router.get('/',(req,res)=>{
 	res.render("dashboard");
 });
+router.get('/dashboard',(req,res)=>{
+	res.render("dashboard");
+});
 
 router.get('/user', (req,res)=>{
 	res.redirect('/api/admin/all');
