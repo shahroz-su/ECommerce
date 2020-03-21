@@ -1,0 +1,165 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Add Products </title>
+  <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7; IE=EmulateIE9">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no"/>
+    <link rel="shortcut icon" href=https://freshdesignweb.com/wp-content/themes/fv28/images/icon.ico />
+    <link rel="stylesheet" type="text/css" href="/css/style.css" media="all"/>
+    <link rel="stylesheet" type="text/css" href="/css/fdw-demo.css" media="all"/>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans+Condensed:700' rel='stylesheet' type='text/css'>
+   
+</head>
+<body>
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+<!------ Include the above in your HEAD tag ---------->
+<style type="text/css">
+  @import "/css/font-awesome.min.css";
+@import "/css/font-awesome-ie7.min.css";
+/* Space out content a bit */
+body {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+/* Everything but the jumbotron gets side spacing for mobile first views */
+.header,
+.marketing,
+.footer {
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+/* Custom page header */
+.header {
+  border-bottom: 1px solid #e5e5e5;
+}
+/* Make the masthead heading the same height as the navigation */
+.header h3 {
+  padding-bottom: 19px;
+  margin-top: 0;
+  margin-bottom: 0;
+  line-height: 40px;
+}
+
+/* Custom page footer */
+.footer {
+  padding-top: 19px;
+  color: #777;
+  border-top: 1px solid #e5e5e5;
+}
+
+/* Customize container */
+@media (min-width: 768px) {
+  .container {
+    max-width: 730px;
+  }
+}
+.container-narrow > hr {
+  margin: 30px 0;
+}
+
+/* Main marketing message and sign up button */
+.jumbotron {
+  text-align: center;
+  border-bottom: 1px solid #e5e5e5;
+}
+.jumbotron .btn {
+  padding: 14px 24px;
+  font-size: 21px;
+}
+
+/* Supporting marketing content */
+.marketing {
+  margin: 40px 0;
+}
+.marketing p + h4 {
+  margin-top: 28px;
+}
+
+/* Responsive: Portrait tablets and up */
+@media screen and (min-width: 768px) {
+  /* Remove the padding we set earlier */
+  .header,
+  .marketing,
+  .footer {
+    padding-right: 0;
+    padding-left: 0;
+  }
+  /* Space out the masthead */
+  .header {
+    margin-bottom: 30px;
+  }
+  /* Remove the bottom border on the jumbotron for visual effect */
+  .jumbotron {
+    border-bottom: 0;
+  }
+}
+</style>
+<div class="container">
+    <h1 class="well">Add Products</h1>
+<% if(typeof err != 'undefined' ){%>
+        <div class="alert alert-dismissible alert-danger">
+          <button class="close" type="button" data-dismiss="alert">&times;</button>
+          <strong><%= err %></strong> 
+        </div>  
+<% } %>
+  <div class="col-lg-12 well">
+  <div class="row">
+        <form  action="/api/admin/pro_add" method="POST" role="form" enctype="multipart/form-data">
+          <div class="col-sm-12">
+            <div class="row">
+              <div class="col-sm-6 form-group">
+                <label>Product Name</label>
+                <input type="text" name="name" placeholder="Enter Product Name " class="form-control">
+              </div>
+            </div>           
+            <div class="row">
+              <div class="col-sm-4 form-group">
+                <label>Select Image</label>
+                <div class="col-lg-9"> <span class="btn vd_btn vd_bg-green fileinput-button"> 
+                  <span><input type="file" multiple="" name="img" id="fileupload"></span> 
+                              <!-- The file input field used as target for the file upload widget -->
+                              </span> <br>
+                              
+                              <br>
+                            </div>
+              </div>     
+            </div> 
+            <div class="row">
+              <div class="col-sm-4 form-group">
+                <label>Select Company</label><br>
+                                <div class="col-lg-5  mgbt-xs-10 mgbt-lg-0">
+                                  <select id="form-control" name="company">
+                                      <option value="Huawei">Huawei</option>
+                                      <option value="LG">LG</option>
+                                      <option value="BlackBerry">BlackBerry</option>
+                                      <option value="Samsung">Samsung</option>
+                                      <option value="IPhone">IPhone</option>
+                                      <option value="Motorola">Motorola</option>
+                                      <option value="Vivo">Vivo</option>
+                                      <option value="Oppo">Oppo</option>
+                                      <option value="Nokia">Nokia</option>
+                                      <option value="Infinix">Infinix</option>
+                                  </select>
+                                </div>
+              </div>     
+            </div>            
+          <div class="form-group">
+            <label>Price</label>
+                            <div class="input-group"> <span class="input-group-addon">$ </span>
+                                <input type="text" onchange="this.value = this.value.replace(/,/g, '.');" name="price" placeholder="0.00" class="form-control"           id="wholesale_price" maxlength="14">
+                            </div>
+          </div>    
+           <button type="submit" class="btn btn-lg btn-info">Submit</button>       
+          </div>
+        </form> 
+        </div>
+  </div>
+  </div>
+</body>
+</html>

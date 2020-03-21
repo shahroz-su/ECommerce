@@ -1,0 +1,7 @@
+<% if( User ) {%>
+						<li class="text-center border-right text-white">
+							<h3 data-toggle="modal" data-target="#exampleModal" class="text-white">
+								<i class="fas fa-sign-in-alt mr-2"></i> Welcome  <%= User.name %></h3>
+						</li>
+<% }else{ %>
+<% } %>

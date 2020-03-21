@@ -1,0 +1,36 @@
+const mongoose = require('mongoose');
+const passportLocalMongoose = require("passport-local-mongoose");
+
+const userSchema = new mongoose.Schema({
+	name : {
+		type : String,
+		required : true,
+		min: 5
+	},
+	email : {
+		type : String,
+		required : true,
+		max : 200,
+		min : 10
+	},
+	password : {
+		type : String,
+		required : true,
+		max : 200,
+		min : 8
+	},
+	resetPasswordToken: String,
+    resetPasswordExpires: Date,
+    temporarytoken : String,
+	date : {
+		type : Date,
+		default : Date.now
+	}
+});
+
+userSchema.plugin(passportLocalMongoose);
+
+
+module.exports = mongoose.model('user',userSchema);
+
+// In EmployeeDB, A table was Creaed with name user & these attributes that was given above
