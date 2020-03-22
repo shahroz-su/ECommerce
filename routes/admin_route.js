@@ -29,7 +29,7 @@ router.get('/dashboard',(req,res)=>{
 });
 
 router.get('/user', (req,res)=>{
-	res.redirect('/api/admin/all');
+	res.redirect('/admin/all');
 });
 router.get('/user_sign', (req,res)=>{
 	res.render('user_sign');
@@ -38,10 +38,10 @@ router.get('/register', (req,res)=>{
 	res.render('user_sign');
 });
 router.get('/detail', (req,res)=>{
-	res.redirect('/api/admin/all');
+	res.redirect('/admin/all');
 });
 router.get('/delete', (req,res)=>{
-	res.redirect('/api/admin/all');
+	res.redirect('/admin/all');
 });
 router.get('/add_Product1', (req,res)=>{
 	res.render('add_Product1');

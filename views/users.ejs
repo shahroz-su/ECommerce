@@ -192,7 +192,7 @@ $(document).ready(function(){
                     <div class="col-sm-7">
                         <a href="user_sign" class="btn btn-primary"><i class="material-icons">&#xE147;</i> <span>Add New User</span></a>
                         <!-- <a href="#" class="btn btn-primary"><i class="material-icons">&#xE24D;</i> <span>Export to Excel</span></a>      --> 
-                        <form action="/api/admin/detail" method="POST" class="form-inline my-2 my-lg-0">
+                        <form action="/admin/detail" method="POST" class="form-inline my-2 my-lg-0">
                                   <input class="form-control mr-sm-2" type="text" name="email" id="email" placeholder="Email">
                                   <button class="btn btn-secondary my-2 my-sm-0" type="submit">Search</button>
                         </form>               
@@ -218,8 +218,8 @@ $(document).ready(function(){
                         <td><%= row.name%></td>
                         <td><%= row.email%></td>
                         <td>
-                            <a href="/api/admin/update/<%= row._id %>" class="settings" title="Settings" data-toggle="tooltip"><i class="material-icons">&#xE8B8;</i></a>
-                            <a href="/api/admin/delete/<%= row._id %>" class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE5C9;</i></a>
+                            <a href="/admin/update/<%= row._id %>" class="settings" title="Settings" data-toggle="tooltip"><i class="material-icons">&#xE8B8;</i></a>
+                            <a href="/admin/delete/<%= row._id %>" class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE5C9;</i></a>
                         </td>
                     </tr>
                     <% })} else{ %>

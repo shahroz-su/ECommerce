@@ -41,10 +41,6 @@ res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password'
   if (err.length > 0) {
     res.render("register", { 'err' : err, 'email' : email , 'name' : name , 'password' : password});
   } 
-  if (err) {
-        err = "Please Try Again";
-   res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password' : password});
- }
   const emailExist = await User.findOne({email : req.body.email});
   if (emailExist){
    err = "Email Already Exist";
@@ -52,7 +48,7 @@ res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password'
  }else{
     const salt = await bcrypt.genSalt(10 );
     const hashpasswd = await bcrypt.hash(req.body.password, salt);
-    temporarytoken = jwt.sign({ name: user.username, email: user.email }, secret, { expiresIn: '24h' }); // Create a token for activating account through e-mail
+    temporarytoken = jwt.sign({ name: name, email: email }, secret, { expiresIn: '24h' }); // Create a token for activating account through e-mail
       //  Create a New User
   const user = new User({
     name : req.body.name,
@@ -76,7 +72,7 @@ res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password'
         subject: 'Account Confirmation Link',
         text: 
           'Please click on the following link, to Confirm your Account:\n\n' +
-          'http://' + req.headers.host + '/api/web/index/ ' + '\n\n' +
+          'http://' + req.headers.host + '/index/ ' + '\n\n' +
           'If you did not request this, please ignore this email..\n'
       };
       smtpTransport.sendMail(mailOptions, function(err) {
@@ -92,8 +88,8 @@ res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password'
 
 exports.loginuser = (req,res,next)=>{
   passport.authenticate('local', {
-    successRedirect: "/api/web/index",
-    failureRedirect: "/api/web/login",
+    successRedirect: "/index",
+    failureRedirect: "/login",
     failureFlash: true,
   })(req, res, next);
 };
@@ -108,7 +104,7 @@ app.get('/index',checkAuthenticated,(req,res)=>{
 //router.get('/logout', userController.logout);
 exports.logout = (req,res)=>{
    req.logout();
-  res.redirect("/api/web/index");
+  res.redirect("/index");
 };
 
 
@@ -124,7 +120,7 @@ exports.forget = (req, res, next) => {
       User.findOne({ email: req.body.email }, function(err, user) {
         if (!user) {
           req.flash('error', 'No account with that email address exists.');
-          return res.redirect('/api/web/forget');
+          return res.redirect('/forget');
         }
 
         user.resetPasswordToken = token;
@@ -152,7 +148,7 @@ exports.forget = (req, res, next) => {
         subject: 'Node.js Password Reset',
         text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
           'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-          'http://' + req.headers.host + '/api/web/newpass/' + token + '\n\n' +
+          'http://' + req.headers.host + '/newpass/' + token + '\n\n' +
           'If you did not request this, please ignore this email and your password will remain unchanged.\n'
       };
       smtpTransport.sendMail(mailOptions, function(err) {
@@ -225,7 +221,7 @@ User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt
               done(err);
             });
            /* res.json({ success: true, message: 'Password has been reset!' }); // Return success message*/
-            res.redirect('/api/web/login');
+            res.redirect('/login');
           }
         })
       }

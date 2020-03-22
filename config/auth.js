@@ -34,14 +34,14 @@ module.exports = {
       res.set('Cache-Control','no-cache , private, no-store, must-revalidate, post-check=0, pre-check=0');
       return next();
     }else{
-      res.redirect("/api/web/index");
+      res.redirect("/web/index");
     }
   },
   forwardAuthenticated: function(req, res, next) {
     if (!req.isAuthenticated()) {
       return next();
     }
-    res.redirect('/api/web');      
+    res.redirect('/web');      
   }
 };
 
