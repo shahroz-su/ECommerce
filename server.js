@@ -7,6 +7,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 //Connect To DB
 require('./config/db.js');
+
 //passport configuration file
 require("./config/passport")(passport);
 
