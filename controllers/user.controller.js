@@ -133,9 +133,6 @@ exports.forget = (req, res, next) => {
     },
     function(token, user, done) {
      var smtpTransport = nodemailer.createTransport({
-      host: 'mail.google.com',
-        port: 465,
-        secure: true,
         service : 'gmail',
         auth: {
           user: 'usmanarshad864@gmail.com', 
