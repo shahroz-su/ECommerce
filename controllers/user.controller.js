@@ -133,7 +133,10 @@ exports.forget = (req, res, next) => {
     },
     function(token, user, done) {
      var smtpTransport = nodemailer.createTransport({
-        service : 'gmail',
+     host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+        //service : 'gmail',
         auth: {
           user: 'usmanarshad864@gmail.com', 
           pass: 'bismilla786786'
@@ -145,7 +148,7 @@ exports.forget = (req, res, next) => {
         subject: 'Node.js Password Reset',
         text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
           'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-          'https://mobie-store.herokuapp.com/' + '/newpass/' + token + '\n\n' +
+          'https://mobie-store.herokuapp.com' + '/newpass/' + token + '\n\n' +
           'If you did not request this, please ignore this email and your password will remain unchanged.\n'
       };
       smtpTransport.sendMail(mailOptions, function(err) {
@@ -155,7 +158,7 @@ exports.forget = (req, res, next) => {
       });
     }
   ], function(err) {
-    if (err) return next(err);
+    if (err) throw err;
     res.render('pass-reset1');
   });
 };
