@@ -133,10 +133,10 @@ exports.forget = (req, res, next) => {
     },
     function(token, user, done) {
      var smtpTransport = nodemailer.createTransport({
-     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-        //service : 'gmail',
+            host: 'smtp.gmail.com',
+			 port: 465,
+			 secure: true,
+        service : 'gmail',
         auth: {
           user: 'usmanarshad864@gmail.com', 
           pass: 'bismilla786786'
@@ -158,7 +158,7 @@ exports.forget = (req, res, next) => {
       });
     }
   ], function(err) {
-    if (err) throw err;
+    if (err) return next(err);
     res.render('pass-reset1');
   });
 };
