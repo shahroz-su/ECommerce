@@ -25,6 +25,11 @@ exports.register = (req, res) => res.render("register");
 exports.registeruser = async (req,res)=>{
 
 const { name, email, password } = req.body;
+		var user = new User(); // Create new User object
+		user.name = req.body.name; // Save username from request to User object
+		user.password = req.body.word; // Save password from request to User object
+		user.email = req.body.email; // Save email from request to User object
+		user.temporarytoken = jwt.sign({ name: name, email: email }, secret, { expiresIn: '24h' }); // Create a token for activating account through e-mail
  let err = [];
  if (!name || !email || !password ) {
   err = "Please Fill All Fields";
@@ -48,16 +53,8 @@ res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password'
  }else{
     const salt = await bcrypt.genSalt(10 );
     const hashpasswd = await bcrypt.hash(req.body.password, salt);
-    temporarytoken = jwt.sign({ name: name, email: email }, secret, { expiresIn: '24h' }); // Create a token for activating account through e-mail
-      //  Create a New User
-  const user = new User({
-    name : req.body.name,
-    email : req.body.email,
-    //password : req.body.password
-    password : hashpasswd,
-    temporarytoken
     
-  });
+  //  Create a New User
   const saveUser = await user.save(function(err){
   var smtpTransport = nodemailer.createTransport({
         service : 'gmail',
@@ -72,13 +69,13 @@ res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password'
         subject: 'Account Confirmation Link',
         text: 
           'Please click on the following link, to Confirm your Account:\n\n' +
-          'http://' + req.headers.host + '/index/ ' + '\n\n' +
+          'http://' + req.headers.host + '/activate/' + user.temporarytoken +
           'If you did not request this, please ignore this email..\n'
       };
       smtpTransport.sendMail(mailOptions, function(err) {
         console.log('mail sent');
         req.flash('success_msg', 'An e-mail has been sent to ' + user.email + ' with further instructions.');
-        done(err, 'done');
+        //done(err, 'done');
       });
     res.render('register',{ success_msg :'Account Confirmation link sent to your email, Please Click on the link to confirm your account'});    
     });
@@ -135,7 +132,7 @@ exports.forget = (req, res, next) => {
      var smtpTransport = nodemailer.createTransport({
             host: 'smtp.gmail.com',
 			 port: 465,
-			 secure: true,
+		secure: true,
         service : 'gmail',
         auth: {
           user: 'usmanarshad864@gmail.com', 
@@ -271,18 +268,16 @@ exports.send_msg = (req,res)=>{
   };
 
 exports.activate =  function(req, res) {
-    User.findOne({ temporarytoken: req.params.token }, function(err, user) {
+    User.findOne({ temporarytoken: req.params.temporarytoken }, function(err, user) {
       if (err) throw err; // Throw error if cannot login
-     // var token = req.params.token; // Save the token from URL for verification 
-      console.log(temporarytoken);
+      var token = req.params.temporarytoken; // Save the token from URL for verification 
+      console.log(token);
       // Function to verify the user's token
-      jwt.verify(temporarytoken, secret, function(err, decoded) {
+      jwt.verify(token, secret, function(err, decoded) {
         if (err) {
             return res.render('register',{error : 'Activation token is invalid or has expired.'});
-        } /*else if (!user) {
-              return res.render('register',{error : 'Activation token is invalid or has expired.'});
-        } */else {
-          //user.temporarytoken = undefined; // Remove temporary token
+        } else {
+          user.temporarytoken = false; // Remove temporary token
           //user.active = true; // Change account status to Activated
           console.log(temporarytoken);
           // Mongoose Method to save user into the database

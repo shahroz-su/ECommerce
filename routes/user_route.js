@@ -71,6 +71,7 @@ router.get('/send_msg',(req,res)=>{
 });
 router.post('/send_msg',userController.send_msg);
 
+//router.get('/activate/:temporarytoken',userController.activate);
 router.get('/activate/:temporarytoken',userController.activate);
 
 module.exports = router;
