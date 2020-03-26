@@ -4,6 +4,7 @@ const passport = require("passport");
 const cookieparser = require('cookie-parser');
 const async = require('async');
 const _ =  require('lodash');
+const session = require('express-session');
 /*var secret = new Buffer('yoursecret', 'base64');*/
 const jwt = require('jsonwebtoken'); // Import JWT Package
 const nodemailer = require('nodemailer');
@@ -29,23 +30,23 @@ const { name, email, password } = req.body;
  if (!name || !email || !password ) {
   err = "Please Fill All Fields";
 res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password' : password});
-    }
-   if (name.length < 5) {
+    } else {
+    if (name.length < 5) {
     err = "Name must be at least 5 characters" ;
-    res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password' : password});
+   return res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password' : password});
   }
-   if (password.length < 6) {
+    if (password.length < 6) {
     err = "Password must be at least 6 characters" ;
-    res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password' : password});
+   return res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password' : password});
   }
-  if (err.length > 0) {
-    res.render("register", { 'err' : err, 'email' : email , 'name' : name , 'password' : password});
+   if (err.length > 0) {
+   return res.render("register", { 'err' : err});
   } 
-  const emailExist = await User.findOne({email : req.body.email});
-  if (emailExist){
+const emailExist = await User.findOne({email : req.body.email});
+   if (emailExist){
    err = "Email Already Exist";
-   res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password' : password});
- }else{
+  return res.render('register',{'err' : err});
+ } else {
  	const salt = await bcrypt.genSalt(10 );
     const hashpasswd = await bcrypt.hash(req.body.password, salt);
     const user = new User(); // Create new User object
@@ -65,7 +66,7 @@ res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password'
 			        host: 'smtp.gmail.com',
 					port: 465,
 					secure: true,
-			        service : 'gmail',
+			   service : 'gmail',
 			        auth: {
 			          user: 'usmanarshad864@gmail.com', 
 			          pass: 'bismilla786786'
@@ -89,13 +90,12 @@ res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password'
 				});
 }
 };
+};
 
 
 exports.loginuser =  async (req,res) => {
-
   const { error } = loginValidation(req.body);
   if (error) return    res.status(400).send(error.details[0].message);
-
 //  Check if user is  exist in database or not
 User.findOne({email : req.body.email} , async function(err,user){
 	if (!user) {
@@ -137,8 +137,8 @@ exports.loginuser = (req,res,next)=>{
     failureRedirect: "/login",
     failureFlash: true,
   })(req, res, next);
-};*/
-
+};
+*/
 
 app.get('/index',checkAuthenticated,(req,res)=>{
   res.render('index',{user : req.user});
@@ -148,8 +148,13 @@ app.get('/index',checkAuthenticated,(req,res)=>{
 // Logout
 //router.get('/logout', userController.logout);
 exports.logout = (req,res)=>{
-   req.logout();
+  /* req.logout();*/
+   req.session.destroy((err) => {
+    if(err) {
+        return console.log(err);
+      }
   res.redirect("/index");
+});
 };
 
 

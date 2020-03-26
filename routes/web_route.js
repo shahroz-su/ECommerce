@@ -41,7 +41,6 @@ router.use(function(req, res, next) {
 });*/
 
 
-
 // Dashboard
 router.get('/',(req, res) => {
   console.log(req.user);

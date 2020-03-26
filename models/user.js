@@ -32,6 +32,6 @@ const userSchema = new mongoose.Schema({
 userSchema.plugin(passportLocalMongoose);
 
 
-module.exports = mongoose.model('user',userSchema);
+module.exports = mongoose.model('users',userSchema);
 
 // In EmployeeDB, A table was Creaed with name user & these attributes that was given above
