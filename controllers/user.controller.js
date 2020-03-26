@@ -3,8 +3,9 @@ const bcrypt = require("bcryptjs");
 const passport = require("passport");
 const cookieparser = require('cookie-parser');
 const async = require('async');
+const _ =  require('lodash');
+/*var secret = new Buffer('yoursecret', 'base64');*/
 const jwt = require('jsonwebtoken'); // Import JWT Package
-const secret = 'ApnaCodeAS'; // Create custom secret for use in JWT
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const bodyparser   = require('body-parser');
@@ -14,7 +15,7 @@ const passportLocalMongoose = require("passport-local-mongoose");
 //passport configuration file
 const User = require("../models/user");
 require("../config/passport")(passport);
-const { checkAuthenticated , forwardAuthenticated } = require('../config/auth');
+const { loginValidation , checkAuthenticated , forwardAuthenticated } = require('../config/auth');
 const app = express();
 
 //Login Function
@@ -23,13 +24,7 @@ const app = express();
 exports.register = (req, res) => res.render("register");
 
 exports.registeruser = async (req,res)=>{
-
 const { name, email, password } = req.body;
-		var user = new User(); // Create new User object
-		user.name = req.body.name; // Save username from request to User object
-		user.password = req.body.word; // Save password from request to User object
-		user.email = req.body.email; // Save email from request to User object
-		user.temporarytoken = jwt.sign({ name: name, email: email }, secret, { expiresIn: '24h' }); // Create a token for activating account through e-mail
  let err = [];
  if (!name || !email || !password ) {
   err = "Please Fill All Fields";
@@ -51,45 +46,98 @@ res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password'
    err = "Email Already Exist";
    res.render('register',{'err' : err, 'email' : email , 'name' : name , 'password' : password});
  }else{
-    const salt = await bcrypt.genSalt(10 );
+ 	const salt = await bcrypt.genSalt(10 );
     const hashpasswd = await bcrypt.hash(req.body.password, salt);
-    
-  //  Create a New User
-  const saveUser = await user.save(function(err){
-  var smtpTransport = nodemailer.createTransport({
-        service : 'gmail',
-        auth: {
-          user: 'usmanarshad864@gmail.com', 
-          pass: 'bismilla786786'
-        }
-      });
-      var mailOptions = {
-        to: user.email,
-        from: 'Localhost Staff, usmanarshad864@gmail.com',
-        subject: 'Account Confirmation Link',
-        text: 
-          'Please click on the following link, to Confirm your Account:\n\n' +
-          'http://' + req.headers.host + '/activate/' + user.temporarytoken +
-          'If you did not request this, please ignore this email..\n'
-      };
-      smtpTransport.sendMail(mailOptions, function(err) {
-        console.log('mail sent');
-        req.flash('success_msg', 'An e-mail has been sent to ' + user.email + ' with further instructions.');
-        //done(err, 'done');
-      });
-    res.render('register',{ success_msg :'Account Confirmation link sent to your email, Please Click on the link to confirm your account'});    
-    });
-};
+    const user = new User(); // Create new User object
+	user.name = req.body.name; // Save username from request to User object
+	user.email = req.body.email; // Save email from request to User object
+	user.password = hashpasswd;
+  /*user : _.pick(user, 'id')*/
+  /*id: user._id*/
+  temporarytoken = jwt.sign({ id: user._id }, 'shhhhh', { expiresIn: '24h' }); 
+	user.temporary = temporarytoken ;
+    console.log(user);
+      user.save(function(err) {
+      	if (err) {
+      		console.log(err);
+      	}else{
+			  var smtpTransport = nodemailer.createTransport({
+			        host: 'smtp.gmail.com',
+					port: 465,
+					secure: true,
+			        service : 'gmail',
+			        auth: {
+			          user: 'usmanarshad864@gmail.com', 
+			          pass: 'bismilla786786'
+			        }
+			      });
+			      var mailOptions = {
+			        to: user.email,
+			        from: 'Localhost Staff, usmanarshad864@gmail.com',
+			        subject: 'Account Confirmation Link',
+			        text: 
+			          'Please click on the following link, to Confirm your Account:\n\n' +
+			          'http://' + req.headers.host + '/activate/' + user.temporary + '\n\n' +
+			          'If you did not request this, please ignore this email..\n'
+			      };
+			      smtpTransport.sendMail(mailOptions, function(err) {
+			        console.log('mail sent');
+              
+			      });
+			res.render('register',{ success_msg :'Account Registered But not yet Activated. Account Confirmation link sent to your ' + user.email + ' Please Click on the link to Activate your account'}); 
+      	}
+				});
+}
 };
 
 
+exports.loginuser =  async (req,res) => {
+
+  const { error } = loginValidation(req.body);
+  if (error) return    res.status(400).send(error.details[0].message);
+
+//  Check if user is  exist in database or not
+User.findOne({email : req.body.email} , async function(err,user){
+	if (!user) {
+		   err = "Email or Password is Incorrect";
+   		res.render('login',{'err' : err});
+	}
+	if (user) {
+		if (!user.active) {
+				err = "Account is Not yet Activated, Check your email to activate your account.";
+		   		res.render('login',{'err' : err});
+			}
+			if(user.active){
+				//  Its's Only Matched the Encrypted Password....
+				  const validPass = await bcrypt.compare(req.body.password,user.password);
+				  if (!validPass) {
+				  	err = "Email or Password is Incorrect";
+			   		res.render('login',{'err' : err});
+			   		}
+			   	if (validPass) {
+			   		  jwt.sign({ _id : user._id } ,'secretkey', (err,token) => {
+					    if (!err) {
+					      res.header('Token',token);
+					      res.render('index',{user : user});
+					    }else{
+					       err = "Something went Wrong, Tyr Again";
+   							res.render('login',{'err' : err});
+					    }
+					  });
+			   		}
+			}
+	}
+});
+};
+
+/*
 exports.loginuser = (req,res,next)=>{
   passport.authenticate('local', {
     successRedirect: "/index",
     failureRedirect: "/login",
     failureFlash: true,
   })(req, res, next);
-};
+};*/
 
 
 app.get('/index',checkAuthenticated,(req,res)=>{
@@ -267,51 +315,69 @@ exports.send_msg = (req,res)=>{
   });
   };
 
-exports.activate =  function(req, res) {
-    User.findOne({ temporarytoken: req.params.temporarytoken }, function(err, user) {
-      if (err) throw err; // Throw error if cannot login
-      var token = req.params.temporarytoken; // Save the token from URL for verification 
-      console.log(token);
-      // Function to verify the user's token
-      jwt.verify(token, secret, function(err, decoded) {
-        if (err) {
-            return res.render('register',{error : 'Activation token is invalid or has expired.'});
-        } else {
-          user.temporarytoken = false; // Remove temporary token
-          //user.active = true; // Change account status to Activated
-          console.log(temporarytoken);
-          // Mongoose Method to save user into the database
+exports.activate = async function(req, res) {
+User.findOne({ temporary : req.params.temporarytoken } , async function (err, user) {
+const token = req.params.temporarytoken;
+console.log(token);
+/*const { user : { id }} =*/ jwt.verify(token, 'shhhhh', async (err, decoded) => {
+      if (err) {
+          console.log(err);
+          err = "Activation Token is Invalid or Expired...";
+            res.render('register', {'err' : err});
+      }
+        if (!token) {
+          console.log(token);
+          err = "Activation Token is Invalid or Expired...";
+            res.render('register', {'err' : err});
+      }
+      if (!user) {
+          console.log(token);
+          err = "Activation Token is Invalid or Expired...";
+            res.render('register', {'err' : err});
+      }
+      if (!decoded) {
+        console.log(decoded);
+          err = "Activation Token is Invalid or Expired...";
+            res.render('register', {'err' : err});
+            // Token may be valid but does not match any user in the database
+      }if (decoded){
+        console.log(user);
+        console.log(decoded);
+        console.log(decoded.id);
+         user.active = true;
+         user.temporary = false;
+        /*await User.update({ active : true , temporary : false} , { where : { idd } });*/
           user.save(function(err) {
             if (err) {
               console.log(err); // If unable to save user, log error info to console/terminal
             } else {
-               var smtpTransport = nodemailer.createTransport({
-                service: 'gmail', 
-                auth: {
-                  user: 'usmanarshad864@gmail.com', 
-                  pass: 'bismilla786786'
-                }
-                 });
+                const smtpTransport = nodemailer.createTransport({
+                    host: 'smtp.gmail.com',
+                port: 465,
+                secure: true,
+                    service : 'gmail',
+                    auth: {
+                      user: 'usmanarshad864@gmail.com', 
+                      pass: 'bismilla786786'
+                    }
+                  });
               // If save succeeds, create e-mail object
               var email = {
-                from: 'Localhost Staff, usmanarshad864@gmail.com',
+                from: 'Localhost Staff, staff@localhost.com',
                 to: user.email,
                 subject: 'Localhost Account Activated',
                 text: 'Hello ' + user.name + ', Your account has been successfully activated!',
                 html: 'Hello<strong> ' + user.name + '</strong>,<br><br>Your account has been successfully activated!'
               };
-              console.log(email);
-               // send mail with defined transport object
-              smtpTransport.sendMail(email, (error, info) => {
-                  if (error) {
-                      return console.log(error);
-                  }
-                  console.log("Account activated!");
-                return res.render('login',{success_msg : 'Account Activated Successfully, Please Login '});
-            });
-          };
+
+              // Send e-mail object to user
+               smtpTransport.sendMail(email, function(err) {
+                if (err) console.log(err); // If unable to send e-mail, log error info to console/terminal
+              });
+                res.render('login',{ success_msg :'Account activated!.. Please Login'});  
+            }
+          });
+      }
         });
-      };
-    });
-  });
+      });
 };

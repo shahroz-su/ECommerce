@@ -21,7 +21,8 @@ const userSchema = new mongoose.Schema({
 	},
 	resetPasswordToken: String,
     resetPasswordExpires: Date,
-    temporarytoken : String,
+    active : { type : Boolean,required:true , default:false},
+    temporary : String,
 	date : {
 		type : Date,
 		default : Date.now
