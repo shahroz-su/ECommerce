@@ -93,7 +93,7 @@ const emailExist = await User.findOne({email : req.body.email});
 };
 
 
-exports.loginuser =  async (req,res) => {
+exports.loginuser =  async (req,res,next) => {
   const { error } = loginValidation(req.body);
   if (error) return    res.status(400).send(error.details[0].message);
 //  Check if user is  exist in database or not
@@ -115,17 +115,13 @@ User.findOne({email : req.body.email} , async function(err,user){
 			   		res.render('login',{'err' : err});
 			   		}
 			   	if (validPass) {
-			   		  jwt.sign({ _id : user._id } ,'secretkey', (err,token) => {
-					    if (!err) {
-					      res.header('Token',token);
-					      res.render('index',{user : user});
-					    }else{
-					       err = "Something went Wrong, Tyr Again";
-   							res.render('login',{'err' : err});
+					        passport.authenticate('local', {
+                    successRedirect: "/index",
+                    failureRedirect: "/login",
+                    failureFlash: true,
+                  })(req, res, next);
 					    }
-					  });
 			   		}
-			}
 	}
 });
 };
