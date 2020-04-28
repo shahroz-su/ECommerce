@@ -33,18 +33,58 @@ module.exports = {
     if (req.isAuthenticated()) { // mean login ha
       res.set('Cache-Control','no-cache , private, no-store, must-revalidate, post-check=0, pre-check=0');
       return next();
-    }else{
-      res.redirect("/web/index");
     }
+      res.redirect("/index");
   },
   forwardAuthenticated: function(req, res, next) {
     if (!req.isAuthenticated()) {
       return next();
     }
-    res.redirect('/web');      
+    res.redirect('/index');      
+  },
+  ensureAdminAuthenticated: function (req, res, next) {
+    if (req.isAuthenticated()) {
+          return next();
+    }
+    req.flash("error_msg", "Pleaselog in to view that resource");
+    res.redirect("/admin/login");
+  },
+  forwardAdminAuthenticated: function (req, res, next) {
+    if (!req.isAuthenticated()) {
+      return next();
+    }
+    res.redirect("/admin/dashboard");
+  },
+  authUser : function (req, res, next) {
+  if (req.user == null) {
+    res.status(403)
+    return res.send('You need to sign in');
   }
-};
+  next();
+  },
+  authRole : function (req, res, next)  {
+    if (req.user.role !== 'admin') {
+      return res.redirect('/admin/login');
+    }
+    next()
+  },
+  userRole : function (req, res, next)  {
+    if (req.user) {
+      if (req.user.role !== 'basic') {
+/*        req.user = null;
+*/      return res.redirect('/login');
+    }
+    next()
+  }else if(!req.user){
+    next()
+    /*return res.redirect();*/
+  }
+  },
+}
 
 //    We exports these two functions So, other files can use/call them
 module.exports.registerValidation = registerValidation;
 module.exports.loginValidation = loginValidation;
+/*module.exports = {
+  authrole
+}*/

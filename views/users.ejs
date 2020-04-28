@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bootstrap User Management Data Table</title>
+<title>User Records</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto|Varela+Round">
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -184,6 +184,25 @@ $(document).ready(function(){
 <br>
   <div class="container">
         <div class="table-wrapper">
+<% if(typeof err != 'undefined' ){%>
+                <div class="alert alert-dismissible alert-danger">
+                <button class="close" type="button" data-dismiss="alert">&times;</button>
+                <strong><%= err %></strong> 
+                </div>  
+<% } %>
+<% if(success_msg != '' ){ %>
+                <div class="alert alert-dismissible alert-success">
+                <button class="close" type="button" data-dismiss="alert">&times;</button>
+                <strong><%= success_msg %></strong> 
+                </div>  
+<% } %>
+
+<% if( error != '' ){%>
+        <div class="alert alert-dismissible alert-danger">
+        <button class="close" type="button" data-dismiss="alert">&times;</button>
+        <strong><%= error %></strong>
+        </div>
+<% } %>
             <div class="table-title">
                 <div class="row">
                     <div class="col-sm-5">
@@ -192,10 +211,12 @@ $(document).ready(function(){
                     <div class="col-sm-7">
                         <a href="user_sign" class="btn btn-primary"><i class="material-icons">&#xE147;</i> <span>Add New User</span></a>
                         <!-- <a href="#" class="btn btn-primary"><i class="material-icons">&#xE24D;</i> <span>Export to Excel</span></a>      --> 
+                        <a href="/admin/report" class="btn btn-primary"><i class="material-icons">&#xE24D;</i> <span>Export to Pdf</span></a> 
+                                
                         <form action="/admin/detail" method="POST" class="form-inline my-2 my-lg-0">
                                   <input class="form-control mr-sm-2" type="text" name="email" id="email" placeholder="Email">
                                   <button class="btn btn-secondary my-2 my-sm-0" type="submit">Search</button>
-                        </form>               
+                        </form>   
                     </div>
                 </div>
             </div>
@@ -222,9 +243,7 @@ $(document).ready(function(){
                             <a href="/admin/delete/<%= row._id %>" class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE5C9;</i></a>
                         </td>
                     </tr>
-                    <% })} else{ %>
-                    <tr><th>No record found related to this email</th></tr>
-                    <% } %>
+                    <% })} %>
                     </tbody>
             </table>
         </div>

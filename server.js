@@ -1,4 +1,5 @@
 const express = require("express");
+const router = express.Router();
 const path = require('path');
 const mongoose = require("mongoose");
 const compression = require("compression");
@@ -8,6 +9,24 @@ const bodyparser   = require('body-parser');
 const session = require("express-session");
 const flash = require("connect-flash");
 const passport = require("passport");
+
+router.use(express.json());
+router.use(express.urlencoded({extended : false})); //===============
+router.use(cookieparser('secret')); // read cookies (needed for auth)
+router.use(bodyparser.urlencoded({extended: false})); // get information from html forms
+router.use(session({resave: true, saveUninitialized: true, secret: 'SOMERANDOMSECRETHERE', cookie: { maxAge: 3600000 }}));
+// Passport middleware
+router.use(passport.initialize());
+router.use(passport.session());
+// Connect flash
+router.use(flash());
+// Global variables
+router.use(function(req, res, next) {
+  res.locals.success_msg = req.flash("success_msg");
+  res.locals.error_msg = req.flash("error_msg");
+  res.locals.error = req.flash("error");
+  next();
+});
 
 const app = express();
 const port = process.env.PORT || 3000;

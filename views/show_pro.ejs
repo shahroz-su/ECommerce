@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bootstrap User Management Data Table</title>
+<title>Products Management </title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto|Varela+Round">
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -222,13 +222,11 @@ $(document).ready(function(){
                         <td><%= row.imgname%></td>
                         <td><%= row.price%></td>
                         <td>
-                            <a href="#<%= row._id %>" class="settings" title="Settings" data-toggle="tooltip"><i class="material-icons">&#xE8B8;</i></a>
-                            <a href="#<%= row._id %>" class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE5C9;</i></a>
+                            <a href="/admin/update_pro/<%= row._id %>" class="settings" title="Settings" data-toggle="tooltip"><i class="material-icons">&#xE8B8;</i></a>
+                            <a href="/admin/pro_delete/<%= row._id %>" class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE5C9;</i></a>
                         </td>
                     </tr>
-                    <% })} else{ %>
-                    <tr><th>No products found </th></tr>
-                    <% } %>
+                    <% })} %>
                     </tbody>
             </table>
         </div>

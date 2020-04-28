@@ -11,7 +11,7 @@ const csurf = require('csurf');
 // Load User model
 const User = require("../models/user");
 require("../config/passport")(passport);
-const { checkAuthenticated , forwardAuthenticated } = require('../config/auth');
+const { userRole , checkAuthenticated , forwardAuthenticated } = require('../config/auth');
 /*const csrfMiddleware = csurf({
   cookie: true
 });
@@ -20,7 +20,7 @@ router.use(express.json());
 router.use(express.urlencoded({extended : false})); //===============
 router.use(cookieparser('secret')); // read cookies (needed for auth)
 router.use(bodyparser.urlencoded({extended: false})); // get information from html forms
-router.use(session({resave: true, saveUninitialized: true, secret: 'SOMERANDOMSECRETHERE', cookie: { maxAge: 60000 }}));
+router.use(session({resave: true, saveUninitialized: true, secret: 'SOMERANDOMSECRETHERE', cookie: { maxAge: 3600000 }}));
 // Passport middleware
 router.use(passport.initialize());
 router.use(passport.session());
@@ -34,6 +34,16 @@ router.use(function(req, res, next) {
   next();
 });
 
+/*// Handle All Invalid Routes
+router.get(‘*’, function(req, res){
+ res.render("error");
+});*/
+
+
+router.post("/comment",userController.comment );
+router.post("/comment1",userController.comment1 );
+router.post("/comment2",userController.comment2 );
+
 //Register Routes
 router.get('/login' ,(req,res)=>{
   res.render("login");
@@ -45,10 +55,10 @@ router.get('/register',userController.register);
 router.post('/register', userController.registeruser);
 
 // Login
-router.post('/login', userController.loginuser);
+router.post('/login',userController.loginuser);
 
 // Logout
-router.get('/logout', userController.logout);
+router.get('/logout',userRole, userController.logout);
 
 router.get('/forget', (req, res) =>{
   res.render('forget');
@@ -59,8 +69,8 @@ router.post('/forget',userController.forget);
 router.get('/newpass/:token',userController.newpass);
 router.post('/newpasss/:token',userController.newpasss);
 
-router.get('/send_msg',(req,res)=>{ 
-  res.render('contact',{user : req.user , sess : req.session , msg:''});
+router.get('/send_msg',userRole,(req,res)=>{ 
+  res.render('contact',{user : req.user , msg:''});
 });
 router.post('/send_msg',userController.send_msg);
 

@@ -12,12 +12,20 @@ const crypto = require('crypto');
 const bodyparser   = require('body-parser');
 const flash = require("connect-flash");
 const passportLocalMongoose = require("passport-local-mongoose");
-
-//passport configuration file
+var dialog = require('dialog');
+const alert =require('alert-node');
 const User = require("../models/user");
+const Usser = require("../models/Usser");
+const Comment = require("../models/comment");
+const Comment1 = require("../models/comment1");
+const Comment2 = require("../models/comment2");
 require("../config/passport")(passport);
 const { loginValidation , checkAuthenticated , forwardAuthenticated } = require('../config/auth');
 const app = express();
+const ROLE = {
+  ADMIN: 'admin',
+  BASIC: 'basic'
+}
 
 //Login Function
 
@@ -51,6 +59,7 @@ const emailExist = await User.findOne({email : req.body.email});
     const hashpasswd = await bcrypt.hash(req.body.password, salt);
     const user = new User(); // Create new User object
 	user.name = req.body.name; // Save username from request to User object
+  user.role = ROLE.BASIC;
 	user.email = req.body.email; // Save email from request to User object
 	user.password = hashpasswd;
   /*user : _.pick(user, 'id')*/
@@ -135,11 +144,243 @@ exports.loginuser = (req,res,next)=>{
   })(req, res, next);
 };
 */
+exports.AllJson = async (req, res) => {
+  const Comments = await Comment.find();
+  if (Comments) {
+    console.log(Comments);
+   return res.render('partials/ajax_comment_load',{ comment : Comments });
+    /*res.status(200).send({ Comments });*/
+  }else{
+    console.log(Comments);
+    console.log("Error");
+    res.status(200).send({ Comments });
+  }
+};
 
-app.get('/index',checkAuthenticated,(req,res)=>{
-  res.render('index',{user : req.user});
-  console.log(req.user);
+
+exports.comment = (req,res) => {
+
+    User.findOne(req.user,(err)=>{
+    if (err) throw err;
+    if (req.user) {
+      const nammee = req.user.name;
+        const { commentTxt } = req.body;
+        const coo = new Comment();
+        coo.name = nammee;
+        coo.commentTxt = req.body.commentTxt;
+        coo.save(function(err){
+          if (err) {
+            console.log(err);
+          }else{
+            res.render("index", { subscr : req.sub , user : req.user , sess : req.session , comment : coo});
+            console.log(coo);
+            console.log(req.sub);
+          }
+        });
+    }
+    else if (!req.user ) {
+        const { commentTxt } = req.body;
+        const coo = new Comment();
+        coo.name = "Random User";
+        coo.commentTxt = req.body.commentTxt;
+        console.log(req.body.commentTxt);
+        coo.save(function(err){
+          if (err) {
+            console.log(err);
+          }else{
+            res.render("index", { subscr : req.sub , user : req.user , sess : req.session , comment : coo});
+            /*res.send(coo);*/
+            console.log(coo);
+          }
+        });
+  };
 });
+};
+exports.comment1 = (req,res) => {
+
+    User.findOne(req.user,(err,result)=>{
+    if (err) throw err;
+    /*console.log(result);*/
+    if (req.user) {
+      const nammee = req.user.name;
+        const { commentTxt } = req.body;
+        const cooo = new Comment1();
+        cooo.name = nammee;
+        cooo.commentTxt = req.body.commentTxt;
+        cooo.save(function(err){
+          if (err) {
+            console.log(err);
+          }else{
+            res.render("index", { user : req.user , sess : req.session , comment : cooo});
+            console.log(cooo);
+          }
+        });
+    }
+    else if (!req.user ) {
+        const { commentTxt } = req.body;
+        const cooo = new Comment1();
+        cooo.name = "Random User";
+        cooo.commentTxt = req.body.commentTxt;
+        cooo.save(function(err){
+          if (err) {
+            console.log(err);
+          }else{
+            res.render("index", { user : req.user , sess : req.session , comment : cooo });
+            console.log(cooo);
+          }
+        });
+  };
+});
+};
+
+exports.comment2 = (req,res) => {
+
+    User.findOne(req.user,(err,result)=>{
+    if (err) throw err;
+    /*console.log(result);*/
+    if (req.user) {
+      const nammee = req.user.name;
+        const { commentTxt } = req.body;
+        const coo = new Comment2();
+        coo.name = nammee;
+        coo.commentTxt = req.body.commentTxt;
+        coo.save(function(err){
+          if (err) {
+            console.log(err);
+          }else{
+            res.render("index", { user : req.user , sess : req.session , comment : coo});
+            console.log(coo);
+          }
+        });
+    }
+    else if (!req.user ) {
+        const { commentTxt } = req.body;
+        const coo = new Comment2();
+        coo.name = "Random User";
+        coo.commentTxt = req.body.commentTxt;
+        coo.save(function(err){
+          if (err) {
+            console.log(err);
+          }else{
+            res.render("index", { user : req.user , sess : req.session , comment : coo});
+            console.log(coo);
+          }
+        });
+  };
+});
+};
+
+exports.Newletter = (req,res)=>{
+  User.findOne(req.user,(err,resulttt)=>{
+    if (err) throw err;
+    if (req.user) {
+      const nammee = req.user.name;
+      const emaillee = req.user.email;
+      const emaill = req.body.email;
+      if (emaillee != emaill) {
+       err = "Please Enter Correct Email";
+       res.render("error",{'err' : err});
+/*       res.send(`<script>alert("Please Enter Correct Email");</script>`);*/
+      }
+      if (req.user.Subscribed) {
+        err = "You Have Already Subscribed..";
+       return res.render("error",{'err' : err});
+      }
+       if (emaillee == emaill && !req.user.Subscribed) {
+         User.findOne({ email: req.body.email }, function(err, user) {
+
+            user.Subscribed = true ;
+            user.save();
+            var smtpTransport = nodemailer.createTransport({
+            host: 'smtp.gmail.com',
+             port: 465,
+              secure: true,
+              service : 'gmail',
+              auth: {
+                user: 'usmanarshad864@gmail.com', 
+                pass: 'bismilla786786'
+              }
+            });
+            var mailOptions = {
+              to: user.email,
+              from: 'usmanarshad864@gmail.com',
+              subject: 'Subcription Email',
+              text: 'You Have SuccessFully Subscribed the Electro Store Site'
+            };
+            smtpTransport.sendMail(mailOptions, function(err) {
+              console.log('mail sent');
+              //req.flash('success_msg', 'An e-mail has been sent to ' + user.email + ' with further instructions.');
+             return done(err, 'done');
+            });
+         });
+      }
+    }else{
+      if (!req.user) {
+        const name = req.body.name;
+        const email = req.body.email;
+      Usser.findOne({ email: req.body.email }, function(err, resultt) {
+      if (resultt) {
+        err = "You Have Already Subscribed..";
+       res.render("error",{'err' : err});
+      }
+       if (!resultt) {
+          const sub = new Usser();
+            sub.name = req.body.name;
+            sub.email = req.body.email;
+            sub.Subscribed = true ;
+            sub.save(function(err){
+              if (err) {
+                console.log(err);
+              }else{  
+                var smtpTransport = nodemailer.createTransport({
+                host: 'smtp.gmail.com',
+                 port: 465,
+                  secure: true,
+                  service : 'gmail',
+                  auth: {
+                    user: 'usmanarshad864@gmail.com', 
+                    pass: 'bismilla786786'
+                  }
+                });
+                var mailOptions = {
+                  to: req.body.email,
+                  from: 'usmanarshad864@gmail.com',
+                  subject: 'Subcription Email',
+                  text: 'You Have SuccessFully Subscribed the Electro Store Site'
+                };
+                smtpTransport.sendMail(mailOptions, function(err) {
+                  console.log('mail sent');
+                  //console.log(subscr);
+                 done(err, 'done');
+                });
+              }
+            });
+          Comment.find(function(err,coo){
+        res.render("index", { subscr : sub , user : req.user , sess : req.session , comment : coo});
+        console.log(sub);
+        console.log(req.coo);
+      });
+      }
+    });
+    }
+}
+});
+};
+
+exports.unsubscribe = (req,res)=>{
+     const name = req.body.name;
+      const email = req.body.email;
+      Usser.findOne({ email: req.body.email }, function(err, resultt) {
+      if (resultt) {
+        err = "You Have Already Subscribed..";
+       res.render("error",{'err' : err});
+      }
+});
+    };
+/*app.get('/index',checkAuthenticated,(req,res)=>{
+  res.render('index',{user : req.user });
+  console.log(req.user);
+});*/
 
 // Logout
 //router.get('/logout', userController.logout);
@@ -194,7 +435,7 @@ exports.forget = (req, res, next) => {
         subject: 'Node.js Password Reset',
         text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
           'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-          'https://mobie-store.herokuapp.com' + '/newpass/' + token + '\n\n' +
+          'http://' + req.headers.host + '/newpass/' + token + '\n\n' +
           'If you did not request this, please ignore this email and your password will remain unchanged.\n'
       };
       smtpTransport.sendMail(mailOptions, function(err) {
@@ -275,12 +516,14 @@ User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt
 }
 
 exports.send_msg = (req,res)=>{
+  const email = req.body.email;
+  const admin = 'asad.ali.0072122@gmail.com';
   const output = `
     <p>You have a new contact request</p>
     <h3>Contact Details</h3>
     <ul>  
       <li>Name: ${req.body.name}</li>
-      <li>Email: ${req.body.email}</li>
+      <li>Email: ${email}</li>
     </ul>
     <h3>Message</h3>
     <p>${req.body.message}</p>
@@ -298,7 +541,7 @@ exports.send_msg = (req,res)=>{
   // setup email data with unicode symbols
   let mailOptions = {
       from: '"Nodemailer Contact" <usmanarshad864@gmail.com>', // sender address
-      to: 'usmanarshad0072122@gmail.com', // list of receivers
+      to: email , admin , // list of receivers
       subject: 'Node Contact Request', // Subject line
       text: 'Hello world?', // plain text body
       html: output // html body

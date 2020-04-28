@@ -5,8 +5,19 @@ const productt = require("../models/product");
 const bcrypt = require('bcryptjs');
 const { productValidation , registerValidation, loginValidation } = require('../config/auth');
 const flash = require("connect-flash");
+var pdf = require('html-pdf');
+var requestify = require('requestify');
+var fs = require('fs');
+const ROLE = {
+  ADMIN: 'admin',
+  BASIC: 'basic'
+}
+
+
 
 exports.register =  async (req,res) => {
+  let err = [] ;
+  let success_msg = [];
   const { name, email, password } = req.body;
 console.log(req.body.name);
 console.log(req.body.email);
@@ -16,38 +27,44 @@ console.log(req.body.password);
 
     //  Check if user is already exist in database or not
   const emailExist = await userS.findOne({email : req.body.email});
-  if (emailExist) return res.status(400).send("Email Already Exist");
+  if (emailExist) {
+    res.render('user_sign',{ err : "Email Already Exist, Please choose different" });
+  }
+  if (!emailExist){
   // Hash Password
     const salt = await bcrypt.genSalt(10 );
     const hashpasswd = await bcrypt.hash(req.body.password, salt);
       //  Create a New User
   const user = new userS({
     name : req.body.name,
+    role : ROLE.BASIC,
     email : req.body.email,
-    //password : req.body.password
-    password : hashpasswd
+    password : hashpasswd,
+    active : true
   });
   try{
     const saveUser = await user.save();
-    console.log(req.user);
-    res.redirect('user');
+    return res.redirect('user');
   }catch(err){
     res.status(400).send(err);
   }
 };
+};
 
 exports.details = (req, res) => {
-
+  
   const email = req.body.email;
   if (email != '') {
     const emailpra = {email : email}
   userS.find(emailpra, function(err, user) {
     if (err) {
-      return res.status(400).json({
-        err: `Oops something went wrong! Can't find User with ${emailpra}.`
-      });
+      err = "Make sure you enter correct email";
+       return res.render('users',{ user : user , 'err' : err});
     }
+    if (user) {
+      console.log(user);
     res.render('users',{user : user});
+    }
   });
 };
 };
@@ -55,12 +72,15 @@ exports.details = (req, res) => {
 exports.all = (req, res) => {
   userS.find(function(err, result) {
     if (err) {
-      return res
-        .status(400)
-        .json({ err: "Oops something went wrong! Cannont find Users." });
+        err = "Sorry, No records Found";
+       return res.render('users',{ user : result , 'err' : err});
+    }if (!result) {
+      res.render('users',{user : result , err : "No Record Found"});
     }
+    if (result) {
     res.render('users',{user : result});
-   /* console.log(result);*/
+    console.log(result);
+    }
   });
 };
 
@@ -68,27 +88,45 @@ exports.update = async (req, res) => {
   const id = { _id: req.params.id };
   userS.findById(id,function(err,result){
   if (err) throw err;
-   res.render('update',{user : result});
-     })
-  //res.send(await userS.findById(req.params.id));
+   res.render('update',{ udte : result});
+   console.log("update hony wala result : "+result);
+     });
   };
 
 exports.updateone = async (req, res) => {
-  const hyy = { $set: req.body };
-  const id = req.body.id;
-  userS.findByIdAndUpdate(id,hyy,function(err,result){
-  if (err) throw err;
-   res.render('users',{user : result});
+  let err = [];
+    const salt = await bcrypt.genSalt(10 );
+    const hashpasswd = await bcrypt.hash(req.body.password, salt);
+  name = req.body.name; 
+  email = req.body.email; 
+  password = hashpasswd;
+  const all = {name , email , password} ;
+  console.log(all);
+  const hyy = { $set: all};
+  const id =  req.body.id;
+  userS.findByIdAndUpdate(id, hyy ,function(err,result){
+  if (err) {
+    res.render('users',{user : result , err : "Error during Update, please try again"});
+  }
+   res.redirect('/admin/all');
      });
   //res.send(await userS.findById(req.params.id));
   };
 
 
 exports.delete = async (req, res) => {
-    const id = { _id: req.params.id };
-  userS.findByIdAndDelete( id ,(err,result)=>{
-  if (err) throw err;
-  res.render('users',{user : result});
+const id = { _id: req.params.id };
+userS.find((err,result)=>{
+  if (result) {
+      userS.findByIdAndDelete( id ,(err,result)=>{
+      if (err) {
+           return res.render('users',{ user : result , err : "Failed to delete record, try again" });
+        }
+/*        res.render('users',{user : result , err : "Record deleted Successfully.." });*/
+      });   
+  res.redirect('/admin/user');
+ /* return res.render('users',{user : result , err : "Record deleted Successfully.." });*/
+  }
   });
 };   
 
@@ -221,44 +259,102 @@ exports.pro_all = (req, res) => {
 };
 
 exports.pro_details = (req, res) => {
-
-  const namee = req.body.name;
+ 
+  const name = req.body.name;
   if (name != '') {
-  const neeeeww = {name : /.*namee.*/ }
-  productt.find(neeeeww , function(err, result) {
+    const emailpra = {name : name}
+  productt.find(emailpra, function(err, user) {
     if (err) {
-      return res.status(400).json({
-        err: `Oops something went wrong! Can't find User with ${namepra}.`
-      });
+      err = "Make sure you enter correct email";
+       return res.render('show_pro',{ product : user , 'err' : err});
     }
-    res.render('show_pro',{product : result});
+    if (user) {
+      console.log(user);
+    res.render('show_pro',{product : user});
+    }
   });
 };
-};
-exports.pro_search = (req, res) => {
 
-  const search = req.body.search;
-  console.log(search);
-  if (search != '') {
-  const neeeeww = {name : search }
-  productt.find(neeeeww , function(err, result) {
-    if (err) {
-      return res.status(400).json({
-        err: `Oops something went wrong! Can't find User with ${namepra}.`
-      });
-    }
-    res.render('product',{products : result , user : req.user});
+};
+
+exports.pro_delete = async (req, res) => {
+const id = { _id: req.params.id };
+productt.find((err,result)=>{
+  if (result) {
+      productt.findByIdAndDelete( id ,(err,result)=>{
+      if (err) {
+           return res.render('show_pro',{ product : result , err : "Failed to delete record, try again" });
+        }
+/*        res.render('users',{user : result , err : "Record deleted Successfully.." });*/
+      });   
+  res.redirect('/admin/product');
+ /* return res.render('users',{user : result , err : "Record deleted Successfully.." });*/
+  }
   });
-};
-};
-/*exports.delete = async (req, res) => {
-  const id = req.params.id;
-  let usr = await userS.deleteOne({ _id:id });
-  if (!usr)
-    return res.status(400).json({
-      err: `Oops something went wrong! Cannont delete user with ${req.params.id}.`
-    });
-  res.render('users',{user : result});
-};
+};  
 
-*/
+exports.update_pro = async (req, res) => {
+  const id = { _id: req.params.id };
+  productt.findById(id,function(err,result){
+  if (err) throw err;
+   res.render('update_product',{ prodct : result});
+   console.log("Result : "+result);
+     });
+  };
+
+exports.updateone_pro = async (req, res) => {
+  let err = [];
+const { name , company ,price} = req.body;
+  const imgfile = req.file.filename;
+  console.log(imgfile);
+ if (name != '' && imgfile != '' && company != '' && price != '' ) {
+  console.log(imgfile);
+  const all = {name , imgfile , company , price } ;
+  console.log(all);
+   productt.findByIdAndUpdate(req.body.id, { 
+     name : req.body.name,
+      imgname : imgfile,
+        Company : req.body.company,
+          price : req.body.price
+   } ,function(err,result){
+  if (err) {
+    console.log(err);
+   return res.render('update_product',{user : result , err : "Error during Update, please try again"});
+    }
+  return res.redirect('/admin/product');
+     });
+
+}
+
+  //res.send(await userS.findById(req.params.id));
+  };
+
+exports.reports = (req,res)=>{
+   userS.find(function(err, result) {
+    if (err) {
+        err = "Something went wrong, please try again..";
+       return res.render('users',{ user : result , 'err' : err});
+    }
+    if (!result) {
+      err = "Sorry, No records Found";
+       return res.render('users',{ user : result , 'err' : err});
+    }
+
+    if (result) {
+var externalURL= 'http://' + req.headers.host + '/admin/allrecord';
+requestify.get(externalURL).then(function (response) {
+   // Get the raw HTML response body
+   var html = response.body ; 
+   var config = {format: 'Letter'};
+        pdf.create(html, config).toFile('./generated.pdf', function (err, result) {
+            if (err) return console.log(err);
+            else {
+              var datafile = fs.readFileSync("./generated.pdf");
+              res.header("content-type", "application/pdf");
+              res.send(datafile);
+            }
+                  });
+                });
+  }
+  });
+}

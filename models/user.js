@@ -7,6 +7,10 @@ const userSchema = new mongoose.Schema({
 		required : true,
 		min: 5
 	},
+		role : {
+		type : String,
+		required : true,
+	},
 	email : {
 		type : String,
 		required : true,
@@ -22,6 +26,7 @@ const userSchema = new mongoose.Schema({
 	resetPasswordToken: String,
     resetPasswordExpires: Date,
     active : { type : Boolean,required:true , default:false},
+    Subscribed : { type : Boolean,required:true , default:false},
     temporary : String,
 	date : {
 		type : Date,

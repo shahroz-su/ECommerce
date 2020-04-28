@@ -43,7 +43,7 @@
 							</div>
 						</div>
 					</div>
-				</div>
+				</div>.
 				<!-- //footer second section -->
 			</div>
 		</div>
@@ -123,12 +123,27 @@
 						<!-- newsletter -->
 						<h3 class="text-white font-weight-bold mb-3">Newsletter</h3>
 						<p class="mb-3">Free Delivery on your first order!</p>
-						<form action="#" method="post">
+	<% if( subscr ) {%>
+						<form action="/unsubscribe" method="post">
 							<div class="form-group">
-								<input type="email" class="form-control" placeholder="Email" name="email" required="">
-								<input type="submit" value="Go">
+								<h4 class="text-white font-weight-bold mb-3"><%= subscr.name %></h4>
+								<br>
+								<h4 class="text-white font-weight-bold mb-3"><%= subscr.email %></h4>
+								<br>
+								<button class="btn btn-primary pull-right" id="semore"> UnSubscribe </button>
 							</div>
 						</form>
+	<% }else{ %>
+						<form action="/index" method="post">
+							<div class="form-group">
+								<input type="text" class="form-control" placeholder="Name" name="name" required="">
+								<br>
+								<input type="text" class="form-control" placeholder="Email" name="email" required="">
+								<br>
+								<button class="btn btn-primary pull-right" id="semore"> Subscribe </button>
+							</div>
+						</form>
+	<% } %>
 						<!-- //newsletter -->
 						<!-- social icons -->
 						<div class="footer-grids  w3l-socialmk mt-3">
