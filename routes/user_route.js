@@ -77,4 +77,6 @@ router.post('/send_msg',userController.send_msg);
 //router.get('/activate/:temporarytoken',userController.activate);
 router.get('/activate/:temporarytoken',userController.activate);
 
+router.post('/device_verify_token',userController.verify_token)
+
 module.exports = router;

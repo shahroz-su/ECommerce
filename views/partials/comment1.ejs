@@ -1,4 +1,38 @@
+<script>   
+$(document).ready(function(){
+    $("#submitBtn").click(function(){  
+    $("#myForm").submit(function(event) {
+    const commentst = $("#commentTxt").val();
+     event.preventDefault();      
+     event.stopImmediatePropagation();
+    if ($.trim(commentst) != "") {
+            $.ajax({
+                  url : "/comment1",
+                  method : "POST",
+                  data : { commentTxt : commentst } ,
+                  success : function(response){
+                    /*$("#commentTxt").val("");*/
+                      $('#response').load('http://localhost:3000/json1', function(response, status, http){ 
+                        if(status == "success") {
+                           return alert("Content loaded successfully!"); 
+                                                }
+                        if(status == "error") {
+                           return alert("Error: " + http.status + ": "  + http.statusText); 
+                                              }
+                      }); 
+                          /*alert("Commented Successfully");*/  
+                  }
+                  // Here Place Return
+                });
+                return false; // Here Place Return
+            }
+            return false; // Here Place Return
+          });
+        });
 
+});
+
+</script>
 <div class="container">
 
 <div class="page-header">
@@ -10,21 +44,21 @@
     <div class="row">
         <div class="col-md-6 col-md-offset-3">
             <div class="panel panel-info">
-                <form class="form-inline" method="POST" onsubmit=" return docomment(this);">
+                <form id="myForm">
                 <div class="panel-body">
-                    <textarea placeholder="Write your comment here!" name="commentTxt" class="pb-cmnt-textarea"></textarea>
+                    <textarea placeholder="Write your comment here!" name="commentTxt" id="commentTxt" class="pb-cmnt-textarea"></textarea>
                     <br><br>
-                        <button class="btn btn-primary pull-right" type="submit"> Post </button>
+                        <button class="btn btn-primary pull-right" id="submitBtn" type="submit"> Post </button>
                 </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
-<script type="text/javascript">
-  
-</script>
+
+<div id="response">
 <% if(comment.length>0) {%>
+<% if(comment = comment.reverse() );%>
 <% comment.forEach(function(row){ %>
 <div class="row comment-box p-1 pt-3 pr-4">
       <div class="col-lg-2 col-3 user-img text-center">
@@ -40,7 +74,7 @@
 </div>
 <br>
 <% })} %>
-
+</div>
 <style>
 .user-comment {
   background-color: #f3f3f3 !important;
@@ -75,19 +109,26 @@
       border-radius: 50%;
     }
 </style>
-<script type="text/javascript">
+<!-- <script type="text/javascript">
     function docomment(form) {
     $.ajax({
       url : "/comment1",
       method : "POST",
       data : { commentTxt : form.commentTxt.value } ,
       success : function(response){
-        alert("SuccessFully Commented");
+          $('#response').load('http://localhost:3000/json1', function(response, status, http){ 
+                        if(status == "success") {
+                           return alert("Content loaded successfully!"); 
+                                                }
+                        if(status == "error") {
+                           return alert("Error: " + http.status + ": "  + http.statusText); 
+                                              }
+                      }); 
       }
     });
     return false;
   }
-</script>
+</script> -->
 <!-- Comment Box - END -->
 
 </div>

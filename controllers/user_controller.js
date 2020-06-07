@@ -1,13 +1,18 @@
 const _ = require("lodash");
 const express = require('express');
+var log = require('../lib/log.js');
+var utils = require('../lib/utils.js');
+var config = require('../config.json');
+var pack = require('../package.json');
+var path = require('path');
 const userS = require('../models/user');
 const productt = require("../models/product");
+
 const bcrypt = require('bcryptjs');
 const { productValidation , registerValidation, loginValidation } = require('../config/auth');
 const flash = require("connect-flash");
 var pdf = require('html-pdf');
 var requestify = require('requestify');
-var fs = require('fs');
 const ROLE = {
   ADMIN: 'admin',
   BASIC: 'basic'
@@ -89,28 +94,48 @@ exports.update = async (req, res) => {
   userS.findById(id,function(err,result){
   if (err) throw err;
    res.render('update',{ udte : result});
-   console.log("update hony wala result : "+result);
+   /*console.log("update hony wala result : "+result);*/
      });
   };
 
-exports.updateone = async (req, res) => {
-  let err = [];
-    const salt = await bcrypt.genSalt(10 );
+exports.updateone = async function(req, res)  {
+   let err = [];
+    const salt = await bcrypt.genSalt(10 ) ;
     const hashpasswd = await bcrypt.hash(req.body.password, salt);
   name = req.body.name; 
   email = req.body.email; 
   password = hashpasswd;
-  const all = {name , email , password} ;
-  console.log(all);
-  const hyy = { $set: all};
-  const id =  req.body.id;
-  userS.findByIdAndUpdate(id, hyy ,function(err,result){
-  if (err) {
-    res.render('users',{user : result , err : "Error during Update, please try again"});
-  }
-   res.redirect('/admin/all');
-     });
-  //res.send(await userS.findById(req.params.id));
+userS.findOne({email : req.body.email},function(err,user){
+
+/*      console.log(user);
+      console.log(user.password);
+      console.log(req.body.password);*/
+
+      if (user.password == req.body.password) {
+            const all = {name , email } ;
+            console.log(all);
+            const hyy = { $set: all};
+            const id =  req.body.id;
+            userS.findByIdAndUpdate(id, hyy ,function(err,result){
+            if (err) {
+              res.render('users',{user : result , err : "Error during Update, please try again"});
+            }
+             res.redirect('/admin/all');
+               });
+      }
+      if (user.password != req.body.password) { 
+            const all = {name , email , password} ;
+            console.log(all);
+            const hyy = { $set: all};
+            const id =  req.body.id;
+            userS.findByIdAndUpdate(id, hyy ,function(err,result){
+            if (err) {
+              res.render('users',{user : result , err : "Error during Update, please try again"});
+            }
+             res.redirect('/admin/all');
+               });
+      }
+    });
   };
 
 
@@ -358,3 +383,4 @@ requestify.get(externalURL).then(function (response) {
   }
   });
 }
+

@@ -2,8 +2,10 @@ const express = require("express");
 const router = express.Router();
 const path = require('path');
 const mongoose = require("mongoose");
+var favicon = require('serve-favicon');
 const compression = require("compression");
 const csurf = require('csurf');
+var pack = require('../package.json');
 const cookieparser = require('cookie-parser');
 const bodyparser   = require('body-parser');
 const session = require("express-session");
@@ -50,6 +52,9 @@ app.use('/', web);
 app.use('/admin', admin);
 
 app.set('views', __dirname + '/views');
+// Use ICON for youe website
+app.use(favicon(path.join(__dirname,'public/img/favicon.png')));
+
 app.engine('ejs', require('ejs-locals',{extname : 'ejs', defaultlayout : 'main',
 	layoutDir : __dirname+'/views/layouts',
 	partialsDir  : [

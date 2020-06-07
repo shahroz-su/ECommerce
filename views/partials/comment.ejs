@@ -1,10 +1,10 @@
 <script>   
-
 $(document).ready(function(){
-    $("#submitBtn").click(function(event){  
-    $("#myForm").submit(function() {
+    $("#submitBtn").click(function(){  
+    $("#myForm").submit(function(event) {
     const commentst = $("#commentTxt").val();
      event.preventDefault();      
+     event.stopImmediatePropagation();
     if ($.trim(commentst) != "") {
             $.ajax({
                   url : "/comment",
@@ -12,18 +12,21 @@ $(document).ready(function(){
                   data : { commentTxt : commentst } ,
                   success : function(response){
                     /*$("#commentTxt").val("");*/
-                        $('#response').load('http://localhost:3000/json', function(response, status, http){ 
-                    if(status == "success") {
-                       return alert("Content loaded successfully!"); 
-                        }
-                    if(status == "error") {
-                       return alert("Error: " + http.status + ": "  + http.statusText); 
-              }
-                  }); 
+                      $('#response').load('http://localhost:3000/json', function(response, status, http){ 
+                        if(status == "success") {
+                           return alert("Content loaded successfully!"); 
+                                                }
+                        if(status == "error") {
+                           return alert("Error: " + http.status + ": "  + http.statusText); 
+                                              }
+                      }); 
                           /*alert("Commented Successfully");*/  
                   }
-                }); 
+                  // Here Place Return
+                });
+                return false; // Here Place Return
             }
+            return false; // Here Place Return
           });
         });
 

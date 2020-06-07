@@ -1,0 +1,61 @@
+<div>
+
+<% if(comment.length>0) {%>
+<% if(comment = comment.reverse() );%>
+<% comment.forEach(function(row){ %>
+<div class="row comment-box p-1 pt-3 pr-4">
+      <div class="col-lg-2 col-3 user-img text-center">
+            <img src="/images/avatar9.jpg" class="main-cmt-img rounded-circle" alt="">
+      </div>
+      <div class="col-10 col-9 user-comment bg-light rounded pb-1">
+            <div class="media-body">
+                <h4 class="mt-0"> <%= row.name %> </h4>
+                <p class="para"> <%= row.commentTxt %> </p>
+                <p class="para1"> Date : <%= row.date %> </p>
+            </div>
+     </div>
+</div>
+<br>
+<% })} %>
+<!-- <button class="btn btn-primary pull-right" id="semore">See More Comments</button> -->
+<!-- <br><br> -->
+
+
+<style>
+.user-comment {
+  background-color: #f3f3f3 !important;
+  box-shadow: 0px 5px 8px -4px #c1c1c1;
+}
+.user-comment span {
+  color: #a0a0a0;
+}
+    .para {
+      font-size: 12px;
+      color: black;
+    }
+    .para1 {
+      font-size: 10px;
+      color: black;
+    }
+    .pb-cmnt-container {
+        font-family: Lato;
+        margin-top: 100px;
+    }
+
+    .pb-cmnt-textarea {
+        resize: none;
+        padding: 5px;
+        height: 130px;
+        width: 1000px;
+        border: 2px solid #D2D2D2;
+    }
+    .main-cmt-img {
+      width: 40px !important;
+      height: 40px !important;
+      border-radius: 50%;
+    }
+</style>
+
+<!-- Comment Box - END -->
+
+</div>

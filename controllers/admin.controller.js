@@ -157,16 +157,34 @@ exports.adminupdate = async (req, res) => {
   name = req.body.name; 
   email = req.body.email; 
   password = hashpasswd;
-  const all = {name , email , password} ;
-  console.log(all);
-  const hyy = { $set: all};
-  const id =  req.body.id;
-  Admin.findByIdAndUpdate(id, hyy ,function(err,result){
-  if (err) {
-    res.render('admin_index',{user : result , err : "Error during Update, please try again"});
-  }
-   res.redirect('/admin/admin_index');
-     });
+  Admin.findOne({email : req.body.email},function(err,user){
+
+    if (user.password == req.body.password ) {   
+            const all = {name , email } ;
+            console.log(all);
+            const hyy = { $set: all};
+            const id =  req.body.id;
+            Admin.findByIdAndUpdate(id, hyy ,function(err,result){
+            if (err) {
+              res.render('admin_index',{user : result , err : "Error during Update, please try again"});
+            }
+             res.redirect('/admin/admin_index');
+               });
+    }
+    if (user.password != req.body.password) {
+            const all = {name , email , password} ;
+            console.log(all);
+            const hyy = { $set: all};
+            const id =  req.body.id;
+            Admin.findByIdAndUpdate(id, hyy ,function(err,result){
+            if (err) {
+              res.render('admin_index',{user : result , err : "Error during Update, please try again"});
+            }
+             res.redirect('/admin/admin_index');
+               });
+    }
+
+});
   //res.send(await userS.findById(req.params.id));
   };
 

@@ -4,6 +4,8 @@ const passport = require("passport");
 const cookieparser = require('cookie-parser');
 const async = require('async');
 const _ =  require('lodash');
+const os = require('os');
+var speakeasy = require("speakeasy");
 const session = require('express-session');
 /*var secret = new Buffer('yoursecret', 'base64');*/
 const jwt = require('jsonwebtoken'); // Import JWT Package
@@ -61,6 +63,7 @@ const emailExist = await User.findOne({email : req.body.email});
 	user.name = req.body.name; // Save username from request to User object
   user.role = ROLE.BASIC;
 	user.email = req.body.email; // Save email from request to User object
+  user.hostname = os.hostname();
 	user.password = hashpasswd;
   /*user : _.pick(user, 'id')*/
   /*id: user._id*/
@@ -124,18 +127,111 @@ User.findOne({email : req.body.email} , async function(err,user){
 			   		res.render('login',{'err' : err});
 			   		}
 			   	if (validPass) {
-					        passport.authenticate('local', {
-                    successRedirect: "/index",
-                    failureRedirect: "/login",
-                    failureFlash: true,
-                  })(req, res, next);
+            const hoste = user._id;
+            const moon = os.hostname();
+            const mooni = moon.toString();
+            console.log("DB ID : " +hoste);
+            console.log("Hostname : " + mooni);
+            const muchi = { hostname : { $elemMatch : { $in: [ moon ] } } } ;
+
+     User.findOne({ hostname : { $elemMatch : { $in: [ moon ] } } }, function(err,wow){
+              console.log("what is : "+ wow);
+              if (wow) {
+                console.log("Is Empty : "+wow);
+               console.log("Is Empty : "+!wow);
+                passport.authenticate('local', {
+                            successRedirect: "/index",
+                            failureRedirect: "/login",
+                            failureFlash: true,
+                          })(req, res, next);
+              }
+              if (!wow) {
+                var secret = speakeasy.generateSecret({length: 20});
+                    var token = speakeasy.totp({ secret: req.body.secret, encoding: 'base32' });
+                    const verifytoken = jwt.sign({ password : req.body.password  }, 'shhhhh', { expiresIn: '24h' }); 
+                    const verified_token = jwt.verify(verifytoken, 'shhhhh');
+     /*               console.log(secret);
+                    console.log(token);
+                    console.log(verifytoken);
+                    console.log(verified_token);*/
+                    var smtpTransport = nodemailer.createTransport({
+                          host: 'smtp.gmail.com',
+                          port: 465,
+                          secure: true,
+                          service : 'gmail',
+                          auth: {
+                            user: 'usmanarshad864@gmail.com', 
+                            pass: 'bismilla786786'
+                          }
+                        });
+                        var mailOptions = {
+                          to: user.email,
+                          from: 'Localhost Staff, usmanarshad864@gmail.com',
+                          subject: 'Device Verification',
+                          text: 
+                            'Hey '+ user.name +'!\n'+
+                            'A sign in attempt requires further verification because we did not recognize your device. To complete the sign in, enter the verification code on the unrecognized device.\n'+
+                            'Device : '+ os.hostname() + '\n'+
+                            'Verification Code : ' + token + '\n'+
+                            'If you did not attempt to sign in to your account, your password may be compromised.'
+                        };
+                        smtpTransport.sendMail(mailOptions, function(err) {
+                          console.log('mail sent');
+                          
+                        });
+                    res.render("device_verify",{ user : user , verified_token , sess : req.session , success_msg :'Device Verification Code send to your Email : '+ user.email+' Check Your email account to get the verification Code..'});
+              }
+/*        				if (os.hostname() != moon ) {
+                    
+                  }
+                  if (os.hostname() == wow) {
+                            passport.authenticate('local', {
+                            successRedirect: "/index",
+                            failureRedirect: "/login",
+                            failureFlash: true,
+                          })(req, res, next);
+                  }*/
+      /*});*/ } );
 					    }
 			   		}
 	}
 });
 };
 
+exports.verify_token = async (req, res,next) => {
+  var tokenValidates = speakeasy.totp.verify({
+                  secret: req.body.secret,
+                  encoding: 'base32',
+                  token: req.body.anyword,
+                  window: 6
+                });
+          if (tokenValidates == true) {
+           User.findOne({email : req.body.email} , async function(err,user){
+
+            console.log(user);
+              if (err) throw err;
+              if (user) { 
+               const hoste = os.hostname(); 
+                User.findOneAndUpdate({ email : req.body.email },{ $push: { "hostname": hoste }},{new: true, upsert: true },function(err,wow){ 
+                  passport.authenticate('local', {
+                            successRedirect: "/index",
+                            failureRedirect: "/login",
+                            failureFlash: true,
+                          })(req, res, next);
+                });
+                }else{
+                      res.render("login",{ err :'Incorrect Information..!'});
+                    }
+         })
+     }
+          if (tokenValidates == false) {
+            res.render("device_verify",{ err :'Verification Code in invalid Or Session has been expired.'});
+          }
+}
 /*
+
+
+
 exports.loginuser = (req,res,next)=>{
   passport.authenticate('local', {
     successRedirect: "/index",
@@ -157,6 +253,31 @@ exports.AllJson = async (req, res) => {
   }
 };
 
+exports.AllJson1 = async (req, res) => {
+  const Comments = await Comment1.find();
+  if (Comments) {
+    console.log(Comments);
+   return res.render('partials/ajax_comment_load1',{ comment : Comments });
+    /*res.status(200).send({ Comments });*/
+  }else{
+    console.log(Comments);
+    console.log("Error");
+    res.status(200).send({ Comments });
+  }
+};
+
+exports.AllJson2 = async (req, res) => {
+  const Comments = await Comment2.find();
+  if (Comments) {
+    console.log(Comments);
+   return res.render('partials/ajax_comment_load2',{ comment : Comments });
+    /*res.status(200).send({ Comments });*/
+  }else{
+    console.log(Comments);
+    console.log("Error");
+    res.status(200).send({ Comments });
+  }
+};
 
 exports.comment = (req,res) => {
 
@@ -211,7 +332,7 @@ exports.comment1 = (req,res) => {
           if (err) {
             console.log(err);
           }else{
-            res.render("index", { user : req.user , sess : req.session , comment : cooo});
+            res.render("index", { subscr : req.sub , user : req.user , sess : req.session , comment : cooo});
             console.log(cooo);
           }
         });
@@ -225,7 +346,7 @@ exports.comment1 = (req,res) => {
           if (err) {
             console.log(err);
           }else{
-            res.render("index", { user : req.user , sess : req.session , comment : cooo });
+            res.render("index", { user : req.user , sess : req.session , comment : cooo , subscr : req.sub});
             console.log(cooo);
           }
         });
@@ -248,7 +369,7 @@ exports.comment2 = (req,res) => {
           if (err) {
             console.log(err);
           }else{
-            res.render("index", { user : req.user , sess : req.session , comment : coo});
+            res.render("index", { user : req.user , sess : req.session , comment : coo , subscr : req.sub});
             console.log(coo);
           }
         });
@@ -262,7 +383,7 @@ exports.comment2 = (req,res) => {
           if (err) {
             console.log(err);
           }else{
-            res.render("index", { user : req.user , sess : req.session , comment : coo});
+            res.render("index", { user : req.user , sess : req.session , comment : coo , subscr : req.sub});
             console.log(coo);
           }
         });
@@ -274,45 +395,97 @@ exports.Newletter = (req,res)=>{
   User.findOne(req.user,(err,resulttt)=>{
     if (err) throw err;
     if (req.user) {
-      const nammee = req.user.name;
+      const name = req.user.name;
       const emaillee = req.user.email;
-      const emaill = req.body.email;
-      if (emaillee != emaill) {
-       err = "Please Enter Correct Email";
-       res.render("error",{'err' : err});
-/*       res.send(`<script>alert("Please Enter Correct Email");</script>`);*/
-      }
-      if (req.user.Subscribed) {
-        err = "You Have Already Subscribed..";
-       return res.render("error",{'err' : err});
-      }
-       if (emaillee == emaill && !req.user.Subscribed) {
-         User.findOne({ email: req.body.email }, function(err, user) {
-
+      const email = req.body.email;
+       if (emaillee == email ) {
+        User.findOne({ email: req.body.email }, function(err, user) {
             user.Subscribed = true ;
             user.save();
-            var smtpTransport = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-             port: 465,
-              secure: true,
-              service : 'gmail',
-              auth: {
-                user: 'usmanarshad864@gmail.com', 
-                pass: 'bismilla786786'
+        Usser.findOne({ email: req.body.email }, function(err, resultt) {
+              if (resultt) {
+                err = "You Have Already Subscribed..";
+               res.render("error",{'err' : err});
               }
-            });
-            var mailOptions = {
-              to: user.email,
-              from: 'usmanarshad864@gmail.com',
-              subject: 'Subcription Email',
-              text: 'You Have SuccessFully Subscribed the Electro Store Site'
-            };
-            smtpTransport.sendMail(mailOptions, function(err) {
-              console.log('mail sent');
-              //req.flash('success_msg', 'An e-mail has been sent to ' + user.email + ' with further instructions.');
-             return done(err, 'done');
-            });
+               if (!resultt) {
+                  const sub = new Usser();
+                    sub.name = req.body.name;
+                    sub.email = req.body.email;
+                    sub.Subscribed = true ;
+                    sub.save(function(err){
+                      if (err) {
+                        console.log(err);
+                      }else{  
+                        var smtpTransport = nodemailer.createTransport({
+                        host: 'smtp.gmail.com',
+                         port: 465,
+                          secure: true,
+                          service : 'gmail',
+                          auth: {
+                            user: 'usmanarshad864@gmail.com', 
+                              pass: 'bismilla786786'
+                            }
+                          });
+                          var mailOptions = {
+                            to: req.body.email,
+                            from: 'usmanarshad864@gmail.com',
+                            subject: 'Subcription Email',
+                            text: 'You Have SuccessFully Subscribed the Electro Store Site'
+                          };
+                          smtpTransport.sendMail(mailOptions, function(err) {
+                            console.log('mail sent');
+                            //console.log(subscr);
+                           done(err, 'done');
+                          });
+                        }
+                            });
+                    
+                        res.redirect("/index");
+                      }
+                  });
          });
+      } if (emaillee != email ) {
+              Usser.findOne({ email: req.body.email }, function(err, resultt) {
+              if (resultt) {
+                err = "You Have Already Subscribed..";
+               res.render("error",{'err' : err});
+              }
+               if (!resultt) {
+                  const sub = new Usser();
+                    sub.name = req.body.name;
+                    sub.email = req.body.email;
+                    sub.Subscribed = true ;
+                    sub.save(function(err){
+                      if (err) {
+                        console.log(err);
+                      }else{  
+                        var smtpTransport = nodemailer.createTransport({
+                        host: 'smtp.gmail.com',
+                         port: 465,
+                          secure: true,
+                          service : 'gmail',
+                          auth: {
+                            user: 'usmanarshad864@gmail.com', 
+                              pass: 'bismilla786786'
+                            }
+                          });
+                          var mailOptions = {
+                            to: req.body.email,
+                            from: 'usmanarshad864@gmail.com',
+                            subject: 'Subcription Email',
+                            text: 'You Have SuccessFully Subscribed the Electro Store Site'
+                          };
+                          smtpTransport.sendMail(mailOptions, function(err) {
+                            console.log('mail sent');
+                            //console.log(subscr);
+                           done(err, 'done');
+                          });
+                        }
+                            });
+                    
+                        res.redirect("/index");
+                      }
+                  });
       }
     }else{
       if (!req.user) {
@@ -355,11 +528,8 @@ exports.Newletter = (req,res)=>{
                 });
               }
             });
-          Comment.find(function(err,coo){
-        res.render("index", { subscr : sub , user : req.user , sess : req.session , comment : coo});
-        console.log(sub);
-        console.log(req.coo);
-      });
+    
+        res.redirect("/index");
       }
     });
     }

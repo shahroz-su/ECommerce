@@ -123,27 +123,42 @@
 						<!-- newsletter -->
 						<h3 class="text-white font-weight-bold mb-3">Newsletter</h3>
 						<p class="mb-3">Free Delivery on your first order!</p>
-	<% if( subscr ) {%>
-						<form action="/unsubscribe" method="post">
+<script>   
+$(document).ready(function(){
+    $("#semore").click(function(){  
+    $("#sform").submit(function(event) {
+    const nametst = $("#name").val();
+    const commentst = $("#email").val();
+     event.preventDefault();  
+     event.stopImmediatePropagation();    
+    if ($.trim(commentst) != "") {
+            $.ajax({
+                  url : "/subscribe",
+                  method : "POST",
+                  data : { name : nametst , email : commentst } ,
+                  success : function(response){
+                     alert("Thank You for Subcribing Us..");
+                  }
+                });
+                return false; // Here Place Return
+            }
+            return false; // Here Place Return
+          });
+        });
+
+});
+
+</script>
+						<form id="sform" >
 							<div class="form-group">
-								<h4 class="text-white font-weight-bold mb-3"><%= subscr.name %></h4>
+								<input type="text" class="form-control" placeholder="Name" id="name" name="name" required="">
 								<br>
-								<h4 class="text-white font-weight-bold mb-3"><%= subscr.email %></h4>
-								<br>
-								<button class="btn btn-primary pull-right" id="semore"> UnSubscribe </button>
-							</div>
-						</form>
-	<% }else{ %>
-						<form action="/index" method="post">
-							<div class="form-group">
-								<input type="text" class="form-control" placeholder="Name" name="name" required="">
-								<br>
-								<input type="text" class="form-control" placeholder="Email" name="email" required="">
+								<input type="text" class="form-control" id="email" placeholder="Email" name="email" required="">
 								<br>
 								<button class="btn btn-primary pull-right" id="semore"> Subscribe </button>
 							</div>
 						</form>
-	<% } %>
+
 						<!-- //newsletter -->
 						<!-- social icons -->
 						<div class="footer-grids  w3l-socialmk mt-3">
